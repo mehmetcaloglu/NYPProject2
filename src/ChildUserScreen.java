@@ -3,7 +3,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Random;
 
 public class ChildUserScreen extends JFrame {
@@ -23,19 +22,18 @@ public class ChildUserScreen extends JFrame {
     private LocalDateTime exerciseStartTime;
     private boolean isAnswerCorrect = false;
 
-    private int exerciseCount = 0;
-
     public ChildUserScreen(int a, int b, int N) {
         this.a = a;
         this.b = b;
         this.N = N;
 
         exerciseLog = new ExerciseLog();
+        currentExerciseEntry = new ExerciseEntry("name");
 
         setTitle("Child User Screen");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 200);
-        setLayout(new GridLayout(5, 1));
+        setLayout(new GridLayout(4, 1));
 
         questionLabel = new JLabel();
         answerTextField = new JTextField();
@@ -44,8 +42,7 @@ public class ChildUserScreen extends JFrame {
 
         startExerciseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                startExerciseButton.setEnabled(false);
-                generateExercise();
+                startExercise();
             }
         });
 
@@ -58,21 +55,12 @@ public class ChildUserScreen extends JFrame {
                 QuestionResponse questionResponse = new QuestionResponse(questionLabel.getText(), responseTime, isCorrect);
                 currentExerciseEntry.addQuestionResponse(questionResponse);
 
-                if (exerciseCount >= N) {
+                if (currentExerciseEntry.getQuestionResponses().size() == N) {
                     endExercise();
                 } else {
                     generateQuestion();
                     answerTextField.setText("");
-                    exerciseCount++;
                 }
-            }
-        });
-
-        JButton showReportButton = new JButton("Raporu Göster");
-        showReportButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                ReportScreen reportScreen = new ReportScreen(exerciseLog);
-                reportScreen.setVisible(true);
             }
         });
 
@@ -80,64 +68,66 @@ public class ChildUserScreen extends JFrame {
         add(answerTextField);
         add(startExerciseButton);
         add(submitButton);
-        add(showReportButton);
 
         setLocationRelativeTo(null);
     }
 
-    private void generateExercise() {
-        exerciseCount = 1;
+    private void startExercise() {
         generateQuestion();
         startExerciseButton.setEnabled(false);
-        submitButton.setEnabled(true);
-    }
-
-    private void endExercise() {
-        startExerciseButton.setEnabled(true);
-        submitButton.setEnabled(false);
-        questionLabel.setText("");
-        answerTextField.setText("");
     }
 
     private void generateQuestion() {
         Random random = new Random();
-        int number1 = random.nextInt(a - 1) + 1;
-        int number2 = random.nextInt(b - 1) + 1;
-        int result = number1 * number2;
-        questionLabel.setText(number1 + " * " + number2 + " = ?");
-        exerciseStartTime = LocalDateTime.now();
-        currentExerciseEntry = new ExerciseEntry("çarpma");
-    }
+        int num1 = random.nextInt(a) + 1;
+        int num2 = random.nextInt(b) + 1;
+        int result = num1 * num2;
 
-    private int calculateResponseTime() {
-        LocalDateTime endTime = LocalDateTime.now();
-        return endTime.getSecond() - exerciseStartTime.getSecond();
+        questionLabel.setText(num1 + " * " + num2 + " = ");
+        exerciseStartTime = LocalDateTime.now();
+        isAnswerCorrect = false;
+        answerTextField.setEnabled(true);
+        answerTextField.requestFocus();
     }
 
     private boolean checkAnswer(int userAnswer) {
-        String questionText = questionLabel.getText();
-        if (questionText.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Lütfen bir sayı girin!", "Hata", JOptionPane.ERROR_MESSAGE);
+        int num1 = Integer.parseInt(questionLabel.getText().split(" ")[0]);
+        int num2 = Integer.parseInt(questionLabel.getText().split(" ")[2]);
+        int result = num1 * num2;
+
+        if (userAnswer == result) {
+            isAnswerCorrect = true;
+            return true;
+        } else {
+            isAnswerCorrect = false;
             return false;
         }
+    }
 
-        String correctAnswer = "?";
-        if (questionText.contains("=")) {
-            correctAnswer = questionText.substring(questionText.indexOf("=") + 1).trim();
+    private int calculateResponseTime() {
+        LocalDateTime now = LocalDateTime.now();
+        return (int) java.time.Duration.between(exerciseStartTime, now).getSeconds();
+    }
+
+    private void endExercise() {
+        answerTextField.setEnabled(false);
+        startExerciseButton.setEnabled(true);
+        exerciseLog.addExerciseEntry(currentExerciseEntry);
+        currentExerciseEntry = new ExerciseEntry("name"); // currentExerciseEntry'nin yeniden oluşturulması
+
+        int correctCount = 0;
+        int incorrectCount = 0;
+
+        for (QuestionResponse questionResponse : exerciseLog.getExerciseEntries().get(0).getQuestionResponses()) {
+            if (questionResponse.isCorrect()) {
+                correctCount++;
+            } else {
+                incorrectCount++;
+            }
         }
 
-        boolean isCorrect = Integer.toString(userAnswer).equals(correctAnswer);
-        isAnswerCorrect = isCorrect;
-
-        return isCorrect;
+        String message = "Doğru Sayısı: " + correctCount + "\nYanlış Sayısı: " + incorrectCount;
+        JOptionPane.showMessageDialog(null, message, "Alıştırma Tamamlandı", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public ExerciseLog getExerciseLog() {
-        return exerciseLog;
-    }
-
-    public static void main(String[] args) {
-        ChildUserScreen childUserScreen = new ChildUserScreen(10, 10, 5);
-        childUserScreen.setVisible(true);
-    }
 }

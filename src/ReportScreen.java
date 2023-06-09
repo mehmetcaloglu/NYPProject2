@@ -8,8 +8,7 @@ public class ReportScreen extends JFrame {
 
     private JTextArea exerciseLogsTextArea;
 
-    public ReportScreen(ExerciseLog exerciseLog) {
-        this.exerciseLog = exerciseLog;
+    public ReportScreen() {
 
         setTitle("Egzersiz Günlükleri");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -56,6 +55,6 @@ public class ReportScreen extends JFrame {
 
     public static void main(String[] args) {
         ChildUserScreen childUserScreen = new ChildUserScreen(10, 10, 5);
-        new ReportScreen(childUserScreen.getExerciseLog());
+        new ReportScreen();
     }
 }

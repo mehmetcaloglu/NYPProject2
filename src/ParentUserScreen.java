@@ -2,36 +2,63 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 
 public class ParentUserScreen extends JFrame {
 
+    private ExerciseSettings settings;
+
+    private JLabel aLabel;
+    private JLabel bLabel;
+    private JLabel NLabel;
     private JTextField aTextField;
     private JTextField bTextField;
-    private JTextField nTextField;
+    private JTextField NTextField;
+    private JButton saveButton;
+    private JButton createChildUserButton;
 
-    public ParentUserScreen() {
+    public ParentUserScreen(ExerciseSettings settings) {
+        this.settings = settings;
+
         setTitle("Parent User Screen");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(300, 200);
-        setLayout(new GridLayout(4, 2));
+        setLayout(new GridLayout(5, 2));
 
-        JLabel aLabel = new JLabel("a:");
-        aTextField = new JTextField();
-        JLabel bLabel = new JLabel("b:");
-        bTextField = new JTextField();
-        JLabel nLabel = new JLabel("N:");
-        nTextField = new JTextField();
+        aLabel = new JLabel("a:");
+        bLabel = new JLabel("b:");
+        NLabel = new JLabel("N:");
+        aTextField = new JTextField(String.valueOf(settings.getA()));
+        bTextField = new JTextField(String.valueOf(settings.getB()));
+        NTextField = new JTextField(String.valueOf(settings.getN()));
+        saveButton = new JButton("Kaydet");
+        createChildUserButton = new JButton("Child User Oluştur");
 
-        JButton saveButton = new JButton("Kaydet");
         saveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int a = Integer.parseInt(aTextField.getText());
                 int b = Integer.parseInt(bTextField.getText());
-                int N = Integer.parseInt(nTextField.getText());
+                int N = Integer.parseInt(NTextField.getText());
 
-                ExerciseDataStorage.saveExerciseData(a, b, N);
+                settings.setA(a);
+                settings.setB(b);
+                settings.setN(N);
 
-                JOptionPane.showMessageDialog(null, "Değerler kaydedildi.");
+                ExerciseSettings.saveSettings(settings);
+
+                JOptionPane.showMessageDialog(null, "Ayarlar kaydedildi.");
+            }
+        });
+
+        createChildUserButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String username = JOptionPane.showInputDialog("Kullanıcı Adı:");
+                String password = JOptionPane.showInputDialog("Şifre:");
+
+                ChildUser childUser = new ChildUser(username, password);
+                ChildUser.saveChildUser(childUser);
+
+                JOptionPane.showMessageDialog(null, "Kullanıcı kaydedildi.");
             }
         });
 
@@ -39,10 +66,10 @@ public class ParentUserScreen extends JFrame {
         add(aTextField);
         add(bLabel);
         add(bTextField);
-        add(nLabel);
-        add(nTextField);
-        add(new JLabel());
+        add(NLabel);
+        add(NTextField);
         add(saveButton);
+        add(createChildUserButton);
 
         setLocationRelativeTo(null);
     }

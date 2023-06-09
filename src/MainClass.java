@@ -1,35 +1,51 @@
-import javax.swing.SwingUtilities;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.io.*;
 
 public class MainClass {
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> createAndShowGUI());
-    }
+        String username = JOptionPane.showInputDialog("Kullanıcı Adı:");
+        String password = JOptionPane.showInputDialog("Şifre:");
 
-    private static void createAndShowGUI() {
-        LoginScreen loginScreen = new LoginScreen();
-
-        loginScreen.getLoginButton().addActionListener(e -> {
-            String username = loginScreen.getUsernameField().getText();
-            String password = new String(loginScreen.getPasswordField().getPassword());
-
-            if (username.equals("admin")) {
-                ParentUser parentUser = new ParentUser(username, password, "", "", "");
-                ParentUserScreen parentUserScreen = new ParentUserScreen();
-                parentUserScreen.setVisible(true);
-            } else {
-                ChildUserScreen childUserScreen = new ChildUserScreen(5,10,5);
+        if (username.equals("admin") && password.equals("admin123")) {
+            // Admin kullanıcısı, ParentUserScreen'i aç
+            ExerciseSettings settings = ExerciseSettings.loadSettings();
+            ParentUserScreen parentUserScreen = new ParentUserScreen(settings);
+            parentUserScreen.setVisible(true);
+        } else {
+            // Diğer kullanıcılar için kontrol yap
+            ChildUserScreen childUserScreen = loadChildUserScreen(username, password);
+            if (childUserScreen != null) {
                 childUserScreen.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(null, "Geçersiz kullanıcı adı veya şifre!");
             }
-            loginScreen.dispose();
-        });
-
-        loginScreen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        loginScreen.pack();
-        loginScreen.setLocationRelativeTo(null);
-        loginScreen.setVisible(true);
+        }
     }
+
+
+    private static ChildUserScreen loadChildUserScreen(String username, String password) {
+        try {
+            FileInputStream fileInputStream = new FileInputStream("users.ser");
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+            ChildUser childUser;
+            while ((childUser = (ChildUser) objectInputStream.readObject()) != null) {
+                if (childUser.getUsername().equals(username) && childUser.getPassword().equals(password)) {
+                    objectInputStream.close();
+                    ExerciseSettings settings = ExerciseSettings.loadSettings();
+                    return new ChildUserScreen(settings.getA(), settings.getB(), settings.getN());
+                }
+            }
+
+            objectInputStream.close();
+        } catch (EOFException e) {
+            // Dosya sonuna ulaşıldığında EOFException fırlatılır, bu durumu kontrol etmek gerekir
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 }
