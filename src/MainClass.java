@@ -21,7 +21,7 @@ public class MainClass {
                 ParentUserScreen parentUserScreen = new ParentUserScreen();
                 parentUserScreen.setVisible(true);
             } else {
-                ChildUserScreen childUserScreen = new ChildUserScreen(1,10,5);
+                ChildUserScreen childUserScreen = new ChildUserScreen(5,10,5);
                 childUserScreen.setVisible(true);
             }
             loginScreen.dispose();

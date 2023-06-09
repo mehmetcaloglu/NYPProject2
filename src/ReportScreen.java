@@ -35,10 +35,20 @@ public class ReportScreen extends JFrame {
 
         StringBuilder logsBuilder = new StringBuilder();
         for (ExerciseEntry exerciseEntry : exerciseEntries) {
-            logsBuilder.append("Egzersiz: ").append(exerciseEntry.getExercise())
-                    .append(", Tarih: ").append(exerciseEntry.getDate())
-                    .append(", Cevap: ").append(exerciseEntry.getUserAnswer())
-                    .append("\n");
+            String exercise = exerciseEntry.getExerciseName(); // Alıştırma adını alma
+            String date = exerciseEntry.getStartTime().toString(); // Başlangıç zamanını alma
+            String userAnswer = "";
+            for (QuestionResponse questionResponse : exerciseEntry.getQuestionResponses()) {
+                userAnswer += questionResponse.getQuestion() + ": " + questionResponse.getResponseTime() + " sn";
+                if (!questionResponse.isCorrect()) {
+                    userAnswer += " (Yanlış)\n";
+                } else {
+                    userAnswer += "\n";
+                }
+            }
+            logsBuilder.append("Alıştırma: ").append(exercise).append("\n");
+            logsBuilder.append("Başlangıç tarihi: ").append(date).append("\n");
+            logsBuilder.append("Cevaplar:\n").append(userAnswer).append("\n");
         }
 
         exerciseLogsTextArea.setText(logsBuilder.toString());
